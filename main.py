@@ -11,3 +11,5 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     send_ip = input('Send message to (ip address): ')
 
     print('Send to', send_ip)
+
+    # test 8
