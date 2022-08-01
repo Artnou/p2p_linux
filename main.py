@@ -12,10 +12,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
     while True:
         send_ip = input('Send message to (ip address): ')
-        msg = input('> ')
-
-        print('Sent to', send_ip)
+        msg = input('To {} > '.format(send_ip))
 
         s.sendto(msg.encode(), (send_ip, PORT))
+
+        print('You --> {}: {}'.format(send_ip, msg))
     
     
