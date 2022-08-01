@@ -1,11 +1,4 @@
 import socket
-import argparse
-
-# parser = argparse.ArgumentParser()
-# parser.add_argument("--ip", nargs='?', type=str)
-# args = parser.parse_args()
-# 
-# HOST_IP = args.ip
 
 HOST_IP = '0.0.0.0'
 
