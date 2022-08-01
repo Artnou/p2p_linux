@@ -28,16 +28,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     while True:
         send_ip = input('Send to: ')
 
-        if send_ip == 'exit':
+        if send_ip == '/exit':
             sys.exit()
         
         while True:
             msg = input('You --> {}: '.format(send_ip))
 
-            if msg == 'change':
+            if msg == '/change':
                 send_ip = '0.0.0.0'
                 break
-            elif msg == 'exit':
+            elif msg == '/exit':
                 sys.exit()
 
             s.sendto(msg.encode(), (send_ip, PORT))
