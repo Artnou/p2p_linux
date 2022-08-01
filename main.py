@@ -7,7 +7,7 @@ PORT = 5555
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
 
-    # host_ip = socket.gethostbyname(socket.gethostname())
+    send_ip = '0.0.0.0'
 
     print('-- Client launched --')
 
@@ -16,14 +16,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             data, addr = s.recvfrom(1024)
             data = data.decode()
             recv_ip, recv_port = addr
-            print('\r{} --> You: {}'.format(recv_ip, data))
-            print('You --> {}'.format(send_ip))
+
+            if send_ip == '0.0.0.0':
+                print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
+            else:
+                print('\r{} --> You: {}\nYou --> {}: '.format(recv_ip, data, send_ip), end='')
 
     listener = threading.Thread(target=listen, daemon=True)
     listener.start()
 
     while True:
-        send_ip = input('Send message to (ip address): ')
+        send_ip = input('Send to: ')
 
         if send_ip == 'exit':
             sys.exit()
@@ -32,10 +35,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             msg = input('You --> {}: '.format(send_ip))
 
             if msg == 'change':
+                send_ip = '0.0.0.0'
                 break
             elif msg == 'exit':
                 sys.exit()
 
             s.sendto(msg.encode(), (send_ip, PORT))
-    
-    
+       
