@@ -1,15 +1,19 @@
 import socket
 import sys
 import threading
+from termcolor import colored
 
 PORT = 5555
+
+peers = []
+colors = ['red','green','yellow','cyan','magenta','blue']
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
 
     send_ip = '0.0.0.0'
 
-    print('-- Client launched --')
+    print(colored('-- Client launched --', 'grey', 'on_white'))
 
     def listen():
         while True:
@@ -17,10 +21,15 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             data = data.decode()
             recv_ip, recv_port = addr
 
+            if recv_ip not in peers:
+                peers.append(recv_ip)
+
+            color = colors[peers.index(recv_ip)]
+
             if send_ip == '0.0.0.0':
-                print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
+                print(colored('\r{} --> You: '.format(recv_ip), color) + '{}\nSend to: '.format(data), end='')
             else:
-                print('\r{} --> You: {}\nYou --> {}: '.format(recv_ip, data, send_ip), end='')
+                print(colored('\r{} --> You: '.format(recv_ip), color) + '{}\nYou --> {}: '.format(data, send_ip), end='')
 
     listener = threading.Thread(target=listen, daemon=True)
     listener.start()
