@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 from termcolor import colored
+import re
 
 PORT = 5555
 
@@ -35,10 +36,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     listener.start()
 
     while True:
-        send_ip = input('Send to: ')
+        while True:
+            send_ip = input('Send to: ')
 
-        if send_ip == '/exit':
-            sys.exit()
+            if send_ip == '/exit':
+                sys.exit()
+
+            if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
+                break
+            else:
+                print(colored('/!\ error: invalid ip address /!\ ', 'white', 'on_red'))
         
         while True:
             msg = input('You --> {}: '.format(send_ip))
