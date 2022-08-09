@@ -42,17 +42,26 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                         msg = msg + ' ' + peer
 
                 for peer in peers:
+                    print('sending list to ' + peer)
                     s.sendto(msg.encode(), (peer, PORT))
+
+                print(colored('peers list has been updated!', 'white', 'on_cyan'))
+                print('New peers list:')
+
+                for peer in peers:
+                    print(peer)
             else:
-                if not data == '0':
+                tmp = data.split(' ')
+
+                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", tmp[0]):
                     peers.clear()
                     peers = data.split(' ')
 
-            print(colored('peers list has been updated!', 'white', 'on_cyan'))
-            print('New peers list:')
+                    print(colored('peers list has been updated!', 'white', 'on_green'))
+                    print('New peers list:')
 
-            for peer in peers:
-                print(peer)
+                    for peer in peers:
+                        print(peer)
 
             
 
