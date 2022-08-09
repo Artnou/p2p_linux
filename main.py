@@ -63,7 +63,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         if not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
             print(colored('error: invalid ip address', 'white', 'on_red'))
 
-    s.sendto('0', (connect_ip, PORT))
+    s.sendto('0'.encode(), (connect_ip, PORT))
 
     print('Ip sent')
 
