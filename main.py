@@ -45,7 +45,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 break
             else:
-                print(colored('/!\ error: invalid ip address /!\ ', 'white', 'on_red'))
+                print(colored('error: invalid ip address', 'white', 'on_red'))
         
         while True:
             msg = input('You --> {}: '.format(send_ip))
