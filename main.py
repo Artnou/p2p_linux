@@ -24,6 +24,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
 
     def listen():
+        global peers
+
         while True:
             data, addr = s.recvfrom(1024)
             data = data.decode()
@@ -42,13 +44,15 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 for peer in peers:
                     s.sendto(msg.encode(), (peer, PORT))
             else:
-                peers = data.split(' ')
+                if not data == '0':
+                    peers.clear()
+                    peers = data.split(' ')
 
-                print(colored('peers list has been updated!', 'white', 'on_cyan'))
-                print('New peers list:')
+            print(colored('peers list has been updated!', 'white', 'on_cyan'))
+            print('New peers list:')
 
-                for peer in peers:
-                    print(peer)
+            for peer in peers:
+                print(peer)
 
             
 
