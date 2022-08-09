@@ -40,9 +40,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
     while True:
         data, addr = s.recvfrom(1024)
-        print(colored('Received data', 'white', 'on_yellow'))
         data = data.decode()
-        print(data)
         recv_ip, recv_port = addr
 
         if recv_ip not in peers:
@@ -56,11 +54,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     msg = msg + ' ' + peer
 
             for peer in peers:
-                print('sending list to ' + peer)
                 s.sendto(msg.encode(), (peer, PORT))
 
-            for peer in peers:
-                print(peer)
         else:
             tmp = data.split(' ')
 
