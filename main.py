@@ -35,10 +35,14 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
     print('Ip sent')
 
+    if connect_ip not in peers:
+        peers.append(connect_ip)
+
     while True:
         data, addr = s.recvfrom(1024)
         print(colored('Received data', 'white', 'on_yellow'))
         data = data.decode()
+        print(data)
         recv_ip, recv_port = addr
 
         if recv_ip not in peers:
