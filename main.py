@@ -23,47 +23,6 @@ peers.append(IP)
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
 
-    def listen():
-        global peers
-
-        while True:
-            data, addr = s.recvfrom(1024)
-            print(colored('Received data', 'white', 'on_yellow'))
-            data = data.decode()
-            recv_ip, recv_port = addr
-
-            if recv_ip not in peers:
-                peers.append(recv_ip)
-                msg = ''
-
-                for peer in peers:
-                    if peers.index(peer) == 0:
-                        msg = peer
-                    else:
-                        msg = msg + ' ' + peer
-
-                for peer in peers:
-                    print('sending list to ' + peer)
-                    s.sendto(msg.encode(), (peer, PORT))
-
-                for peer in peers:
-                    print(peer)
-            else:
-                tmp = data.split(' ')
-
-                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", tmp[0]):
-                    peers.clear()
-                    peers = data.split(' ')
-
-                    print(colored('peers list has been updated!', 'white', 'on_green'))
-                    print('New peers list:')
-
-                    for peer in peers:
-                        print(peer)
-
-    listener = threading.Thread(target=listen, daemon=True)
-    listener.start()
-
     connect_ip = ''
 
     while not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
@@ -77,7 +36,39 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     print('Ip sent')
 
     while True:
-        a = 1
+        data, addr = s.recvfrom(1024)
+        print(colored('Received data', 'white', 'on_yellow'))
+        data = data.decode()
+        recv_ip, recv_port = addr
+
+        if recv_ip not in peers:
+            peers.append(recv_ip)
+            msg = ''
+
+            for peer in peers:
+                if peers.index(peer) == 0:
+                    msg = peer
+                else:
+                    msg = msg + ' ' + peer
+
+            for peer in peers:
+                print('sending list to ' + peer)
+                s.sendto(msg.encode(), (peer, PORT))
+
+            for peer in peers:
+                print(peer)
+        else:
+            tmp = data.split(' ')
+
+            if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", tmp[0]):
+                peers.clear()
+                peers = data.split(' ')
+
+                print(colored('peers list has been updated!', 'white', 'on_green'))
+                print('New peers list:')
+
+                for peer in peers:
+                    print(peer)
 
 
 # Old peer-to-peer communication
