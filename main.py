@@ -41,6 +41,30 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
                 for peer in peers:
                     s.sendto(msg.encode(), (peer, PORT))
+            else:
+                peers = data.split(' ')
+
+                print(colored('peers list has been updated!', 'white', 'on_cyan'))
+                print('New peers list:')
+
+                for peer in peers:
+                    print(peer)
+
+            
+
+    listener = threading.Thread(target=listen, daemon=True)
+    listener.start()
+
+    connect_ip = ''
+
+    while not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
+        connect_ip = input('Connect to: ')
+
+        if not not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
+            print(colored('error: invalid ip address', 'white', 'on_red'))
+
+    s.connect((connect_ip, PORT))
+
 
 # Old peer-to-peer communication
 
