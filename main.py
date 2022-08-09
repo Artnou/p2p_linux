@@ -28,6 +28,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
         while True:
             data, addr = s.recvfrom(1024)
+            print(colored('Received data', 'white', 'on_yellow'))
             data = data.decode()
             recv_ip, recv_port = addr
 
@@ -45,9 +46,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     print('sending list to ' + peer)
                     s.sendto(msg.encode(), (peer, PORT))
 
-                print(colored('peers list has been updated!', 'white', 'on_cyan'))
-                print('New peers list:')
-
                 for peer in peers:
                     print(peer)
             else:
@@ -62,8 +60,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
                     for peer in peers:
                         print(peer)
-
-            
 
     listener = threading.Thread(target=listen, daemon=True)
     listener.start()
