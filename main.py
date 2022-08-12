@@ -37,30 +37,29 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     else:
         s.sendto('0'.encode(), (connect_ip, PORT))
         print('Ip sent')
-
-    if connect_ip not in peers:
         peers.append(connect_ip)
 
     def listen():
+        global peers
+
         while True:
             data, addr = s.recvfrom(1024)
             data = data.decode()
             recv_ip, recv_port = addr
 
-            global peers
-
             if recv_ip not in peers:
                 peers.append(recv_ip)
-                msg = ''
+                peer_string = ''
 
                 for peer in peers:
                     if peers.index(peer) == 0:
-                        msg = peer
+                        peer_string = peer
                     else:
-                        msg = msg + ' ' + peer
+                        peer_string = peer_string + ' ' + peer
 
                 for peer in peers:
-                    s.sendto(msg.encode(), (peer, PORT))
+                    print('\npeer: {}\nmessage: {}\n'.format(peer, peer_string))
+                    s.sendto(peer_string.encode(), (peer, PORT))
 
             else:
                 tmp = data.split(' ')
