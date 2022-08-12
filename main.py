@@ -24,6 +24,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
 
     connect_ip = ''
+    send_ip = '0.0.0.0'
 
     while not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
         connect_ip = input('Connect to: ')
@@ -38,37 +39,67 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     if connect_ip not in peers:
         peers.append(connect_ip)
 
-    while True:
-        data, addr = s.recvfrom(1024)
-        data = data.decode()
-        recv_ip, recv_port = addr
+    def listen():
+        while True:
+            data, addr = s.recvfrom(1024)
+            data = data.decode()
+            recv_ip, recv_port = addr
 
-        if recv_ip not in peers:
-            peers.append(recv_ip)
-            msg = ''
-
-            for peer in peers:
-                if peers.index(peer) == 0:
-                    msg = peer
-                else:
-                    msg = msg + ' ' + peer
-
-            for peer in peers:
-                s.sendto(msg.encode(), (peer, PORT))
-
-        else:
-            tmp = data.split(' ')
-
-            if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", tmp[0]):
-                peers.clear()
-                peers = data.split(' ')
-
-                print(colored('peers list has been updated!', 'white', 'on_green'))
-                print('New peers list:')
+            if recv_ip not in peers:
+                peers.append(recv_ip)
+                msg = ''
 
                 for peer in peers:
-                    print(peer)
+                    if peers.index(peer) == 0:
+                        msg = peer
+                    else:
+                        msg = msg + ' ' + peer
 
+                for peer in peers:
+                    s.sendto(msg.encode(), (peer, PORT))
+
+            else:
+                tmp = data.split(' ')
+
+                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", tmp[0]):
+                    peers = data.split(' ')
+
+                    print(colored('peers list has been updated!', 'white', 'on_green'))
+                    print('New peers list:')
+
+                    for peer in peers:
+                        print(peer)
+                else:
+                    if send_ip == '0.0.0.0':
+                        print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
+                    else:
+                        print('\r{} --> You: {}\nYou --> {}'.format(recv_ip, data, send_ip))
+
+    listener = threading.Thread(target=listen, daemon=True)
+    listener.start()
+
+    while True:
+        while True:
+            send_ip = input('Send to: ')
+
+            if send_ip == '/exit':
+                sys.exit()
+
+            if send_ip in peers:
+                break
+            else:
+                print(colored('error: ip adress not in peers', 'white', 'on_red'))
+
+        while True:
+            msg = input('You --> {}: '.format(send_ip))
+
+            if msg == '/change':
+                send_ip = '0.0.0.0'
+                break
+            elif msg == '/exit':
+                sys.exit()
+            else:
+                s.sendto(msg.encode(), (send_ip, PORT))
 
 # Old peer-to-peer communication
 
