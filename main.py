@@ -81,14 +81,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     listener.start()
 
     while True:
-        while True:
+        while send_ip not in peers:
             send_ip = input('Send to: ')
 
             if send_ip == '/exit':
                 sys.exit()
+            elif send_ip == '/peers':
+                print(colored('peers list:', 'white', 'on_cyan'))
 
-            if send_ip in peers:
-                break
+                for peer in peers:
+                    print(peer)
             else:
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
 
@@ -100,6 +102,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 break
             elif msg == '/exit':
                 sys.exit()
+            elif msg == '/peers':
+                print(colored('peers list:', 'white', 'on_cyan'))
+
+                for peer in peers:
+                    print(peer)
             else:
                 s.sendto(msg.encode(), (send_ip, PORT))
 
