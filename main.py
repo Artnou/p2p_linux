@@ -26,15 +26,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     connect_ip = ''
     send_ip = '0.0.0.0'
 
-    while not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
+    while not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip) and not connect_ip == 'self':
         connect_ip = input('Connect to: ')
 
-        if not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip):
+        if not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip) and not connect_ip == 'self':
             print(colored('error: invalid ip address', 'white', 'on_red'))
 
-    s.sendto('0'.encode(), (connect_ip, PORT))
-
-    print('Ip sent')
+    if connect_ip == 'self':
+        print('Network created')
+    else:
+        s.sendto('0'.encode(), (connect_ip, PORT))
+        print('Ip sent')
 
     if connect_ip not in peers:
         peers.append(connect_ip)
@@ -44,6 +46,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             data, addr = s.recvfrom(1024)
             data = data.decode()
             recv_ip, recv_port = addr
+
+            global peers
 
             if recv_ip not in peers:
                 peers.append(recv_ip)
@@ -88,7 +92,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if send_ip in peers:
                 break
             else:
-                print(colored('error: ip adress not in peers', 'white', 'on_red'))
+                print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
 
         while True:
             msg = input('You --> {}: '.format(send_ip))
