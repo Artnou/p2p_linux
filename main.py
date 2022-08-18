@@ -39,6 +39,17 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         print('Ip sent')
         peers.append(connect_ip)
 
+    def get_peers_string():
+        peers_str = ''
+
+        for peer in peers:
+            if peers.index(peer) == 0:
+                peers_str = peer
+            else:
+                peers_str = peers_str + ' ' + peer
+
+        return peers_str
+
     def listen():
         global peers
 
@@ -49,16 +60,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
             if recv_ip not in peers:
                 peers.append(recv_ip)
-                peer_string = ''
 
                 for peer in peers:
-                    if peers.index(peer) == 0:
-                        peer_string = peer
-                    else:
-                        peer_string = peer_string + ' ' + peer
-
-                for peer in peers:
-                    s.sendto(peer_string.encode(), (peer, PORT))
+                    s.sendto(get_peers_string().encode(), (peer, PORT))
 
             else:
                 tmp = data.split(' ')
@@ -85,12 +89,20 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     listener = threading.Thread(target=listen, daemon=True)
     listener.start()
 
+    def exit_command():
+        peers.remove(IP)
+
+        for peer in peers:
+            s.sendto(get_peers_string().encode(), (peer, PORT))
+
+        sys.exit()
+
     while True:
         while send_ip not in peers:
             send_ip = input('Send to: ')
 
             if send_ip == '/exit':
-                sys.exit()
+                exit_command()
             elif send_ip == '/peers':
                 print(colored('peers list:', 'white', 'on_cyan'))
 
@@ -106,7 +118,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 send_ip = '0.0.0.0'
                 break
             elif msg == '/exit':
-                sys.exit()
+                exit_command()
             elif msg == '/peers':
                 print(colored('peers list:', 'white', 'on_cyan'))
 
