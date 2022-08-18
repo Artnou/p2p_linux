@@ -79,7 +79,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     if send_ip == '0.0.0.0':
                         print('\rSend to: ', end='')
                     else:
-                        print('\rYou --> {}'.format(send_ip), end='')
+                        print('\rYou --> {}: '.format(send_ip), end='')
                 else:
                     if send_ip == '0.0.0.0':
                         print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
@@ -108,7 +108,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
                 for peer in peers:
                     print(peer)
-            elif not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
+            elif send_ip not in peers or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
 
         while True:
