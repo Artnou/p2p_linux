@@ -71,10 +71,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     peers = data.split(' ')
 
                     print(colored('\rpeers list has been updated!', 'white', 'on_green'))
-                    print('New peers list:')
+                    print(colored('New peers list:', 'green'))
 
                     for peer in peers:
-                        print(peer)
+                        print(colored(peer, 'green'))
 
                     if send_ip == '0.0.0.0':
                         print('\rSend to: ', end='')
