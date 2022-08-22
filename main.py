@@ -3,8 +3,15 @@ import sys
 import threading
 from termcolor import colored
 import re
+from Crypto.PublicKey import RSA
+from Crypto import Random
 
 PORT = 5555
+
+def generate_keys():
+    pvk = RSA.generate(1024, Random.new().read())
+    pbk = pvk.publickey()
+    return pvk, pbk
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     try:
