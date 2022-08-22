@@ -5,13 +5,30 @@ from termcolor import colored
 import re
 from Crypto.PublicKey import RSA
 from Crypto import Random
+import os.path
 
 PORT = 5555
 
+def check_keys_existence():
+    if not os.path.exists('PrivateKey.txt') and not os.path.exists('PublicKey.txt'):
+        return False
+    return True
+
+# If one of the keys doesn't exist, generate new personnal keys
 def generate_keys():
-    pvk = RSA.generate(1024, Random.new().read())
-    pbk = pvk.publickey()
-    return pvk, pbk
+    if not check_keys_existence():
+        pvk = RSA.generate(1024, Random.new().read())
+        pbk = pvk.publickey()
+
+        exp_pvk = pvk.exportKey('PEM')
+        f = open('PrivateKey.txt', 'w')
+        f.write(exp_pvk.decode(''))
+        f.close()
+
+        exp_pbk = pbk.exportKey('PEM')
+        f = open('PublicKey.txt', 'w')
+        f.write(exp_pbk.decode())
+        f.close()
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     try:
