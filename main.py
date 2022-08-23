@@ -10,25 +10,30 @@ import os.path
 PORT = 5555
 
 def check_keys_existence():
-    if not os.path.exists('PrivateKey.txt') and not os.path.exists('PublicKey.txt'):
-        return False
-    return True
+    return os.path.exists('PrivateKey.txt') and not os.path.exists('PublicKey.txt')
 
-# If one of the keys doesn't exist, generate new personnal keys
+def check_peers_keys_existence():
+    return os.path.exists('PeersKeys.txt')
+
 def generate_keys():
-    if not check_keys_existence():
-        pvk = RSA.generate(1024, Random.new().read())
-        pbk = pvk.publickey()
+    pvk = RSA.generate(1024, Random.new().read())
+    pbk = pvk.publickey()
 
-        exp_pvk = pvk.exportKey('PEM')
-        f = open('PrivateKey.txt', 'w')
-        f.write(exp_pvk.decode(''))
-        f.close()
+    exp_pvk = pvk.exportKey('PEM')
+    f = open('PrivateKey.txt', 'w')
+    f.write(exp_pvk.decode('UTF-8'))
+    f.close()
 
-        exp_pbk = pbk.exportKey('PEM')
-        f = open('PublicKey.txt', 'w')
-        f.write(exp_pbk.decode())
-        f.close()
+    exp_pbk = pbk.exportKey('PEM')
+    f = open('PublicKey.txt', 'w')
+    f.write(exp_pbk.decode('UTF-8'))
+    f.close()
+
+def get_personnal_keys():
+    pvk = open('PrivateKey.txt', 'r').read()
+    pbk = open('PublicKey.txt', 'r').read()
+
+    return pvk, pbk
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     try:
@@ -41,8 +46,15 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
 print('User ip: {}'.format(IP))
 
+if not check_keys_existence():
+    generate_keys()
+
+prv_key, pbl_key = get_personnal_keys()
+
+s = IP + '-' + pbl_key
+
 peers = []
-peers.append(IP)
+peers.append(s)
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
@@ -59,8 +71,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     if connect_ip == 'self':
         print(colored('Network created', 'white', 'on_yellow'))
     else:
-        s.sendto('0'.encode(), (connect_ip, PORT))
-        print('Ip sent')
+        s.sendto(pbl_key.encode(), (connect_ip, PORT))
+        print('Public key sent')
         peers.append(connect_ip)
 
     def get_peers_string():
@@ -83,22 +95,24 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             recv_ip, recv_port = addr
 
             if recv_ip not in peers:
-                peers.append(recv_ip)
+                peers.append(recv_ip + '-' + data)
 
                 for peer in peers:
+                    p_ip, p_key = peer.split('-')
                     s.sendto(get_peers_string().encode(), (peer, PORT))
 
             else:
                 tmp = data.split(' ')
 
-                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", tmp[0]):
+                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])+\-", tmp[0]):
                     peers = data.split(' ')
 
                     print(colored('\rpeers list has been updated!', 'white', 'on_green'))
                     print(colored('New peers list:', 'green'))
 
                     for peer in peers:
-                        print(colored(peer, 'green'))
+                        p_ip, p_key = peer.split('-')
+                        print(colored('Ip: {}; Public Key: {}'.format(p_ip, p_key), 'green'))
 
                     if send_ip == '0.0.0.0':
                         print('\rSend to: ', end='')
