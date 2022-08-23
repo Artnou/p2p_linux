@@ -40,14 +40,17 @@ def get_personnal_keys():
 
     return pvk, pbk
 
-def sign_message(message, pvk):
-    d = SHA256.new()
-    d.update(message.encode())
+def get_signature(message, pvk):
+    digest = SHA256.new()
+    digest.update(message.encode())
 
-    return PKCS1_v1_5.new(pvk).sign(d)
+    return PKCS1_v1_5.new(pvk).sign(digest)
 
 def verify_message(message, signature, pbk):
-    return PKCS1_v1_5.new(pbk).verify(message, signature)
+    digest = SHA256.new()
+    digest.update(message.encode())
+
+    return PKCS1_v1_5.new(pbk).verify(digest, signature)
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
