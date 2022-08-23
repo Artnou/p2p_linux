@@ -1,10 +1,15 @@
 import socket
 import sys
 import threading
-from termcolor import colored
 import re
+
+from termcolor import colored
+
 from Crypto.PublicKey import RSA
 from Crypto import Random
+from Crypto.Hash import SHA256
+from Crypto.Signature import PKCS1_v1_5
+
 import os.path
 
 PORT = 5555
@@ -34,6 +39,16 @@ def get_personnal_keys():
     pbk = open('PublicKey.txt', 'r').read()
 
     return pvk, pbk
+
+def sign_message(message, pvk):
+    d = SHA256.new()
+    d.update(message.encode())
+
+    return PKCS1_v1_5.new(pvk).sign(d)
+
+def verify_message(message, signature, pbk):
+    return PKCS1_v1_5.new(pbk).verify(message, signature)
+
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     try:
@@ -73,7 +88,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     else:
         s.sendto(pbl_key.encode(), (connect_ip, PORT))
         print('Public key sent')
-        peers.append(connect_ip)
+        # peers.append(connect_ip)
 
     def get_peers_string():
         peers_str = ''
