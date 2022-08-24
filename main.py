@@ -89,13 +89,13 @@ def print_peers(n):
         print(colored('New peers list:', 'green'))
 
         for peer in peers:
-            p_ip, p_key = peer.split('-')
+            p_ip, p_key = peer.split('#')
             print(colored('Ip: {}\n{}\n'.format(p_ip, p_key), 'green'))
     elif n == 2:
         print(colored('peers list:', 'white', 'on_cyan'))
 
         for peer in peers:
-            p_ip, p_key = peer.split('-')
+            p_ip, p_key = peer.split('#')
             print(colored('Ip: {}\n{}\n'.format(p_ip, p_key), 'cyan'))
 
 
@@ -149,10 +149,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 peers.append(recv_ip + '#' + data)
 
                 s.sendto(pbl_key.encode(), (recv_ip, PORT))
-
-                for peer in peers:
-                    print('\nPEER {}'.format(peers.index(peer)))
-                    print(peer)
 
                 for peer in peers:
                     p_ip, p_key = peer.split('#')
