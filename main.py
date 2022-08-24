@@ -78,7 +78,7 @@ if not check_keys_existence():
 
 prv_key, pbl_key = get_personnal_keys()
 
-s = IP + '-' + pbl_key
+s = IP + '#' + pbl_key
 
 peers = []
 peers.append(s)
@@ -90,13 +90,13 @@ def print_peers(n):
 
         for peer in peers:
             p_ip, p_key = peer.split('-')
-            print(colored('Ip: {}\n{}'.format(p_ip, p_key), 'green'))
+            print(colored('Ip: {}\n{}\n'.format(p_ip, p_key), 'green'))
     elif n == 2:
         print(colored('peers list:', 'white', 'on_cyan'))
 
         for peer in peers:
             p_ip, p_key = peer.split('-')
-            print(colored('Ip: {}\n{}'.format(p_ip, p_key), 'cyan'))
+            print(colored('Ip: {}\n{}\n'.format(p_ip, p_key), 'cyan'))
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -116,8 +116,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     else:
         s.sendto(pbl_key.encode(), (connect_ip, PORT))
         print('Public key sent')
-        # peers.append(connect_ip)
+        d = s.recv(4096)
+        d = d.decode()
 
+        peers.append(connect_ip + '#' + d)
+        
     def get_peers_string():
         peers_str = ''
 
@@ -140,9 +143,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if recv_ip not in peers:
                 peers.append(recv_ip + '#' + data)
 
+                s.sendto(pbl_key.encode(), (recv_ip, PORT))
+
                 for peer in peers:
-                    p_ip, p_key = peer.split('-')
-                    s.sendto(get_peers_string().encode(), (peer, PORT))
+                    print(peer)
+                    p_ip, p_key = peer.split('#')
+                    s.sendto(get_peers_string().encode(), (p_ip, PORT))
 
             else:
                 tmp = data.split(' ')
