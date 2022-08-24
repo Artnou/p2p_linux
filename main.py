@@ -116,10 +116,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     else:
         s.sendto(pbl_key.encode(), (connect_ip, PORT))
         print('Public key sent')
-        d = s.recv(4096)
-        d = d.decode()
+        # d = s.recv(4096)
+        # d = d.decode()
 
-        peers.append(connect_ip + '#' + d)
+        # peers.append(connect_ip + '#' + d)
         
     def get_peers_string():
         peers_str = ''
@@ -128,7 +128,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if peers.index(peer) == 0:
                 peers_str = peer
             else:
-                peers_str = peers_str + ' ' + peer
+                peers_str = peers_str + '&&' + peer
 
         return peers_str
 
@@ -143,27 +143,23 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if recv_ip not in peers:
                 peers.append(recv_ip + '#' + data)
 
+                print('\n\n')
+                print(peers)
+                print('\n\n')
+
                 s.sendto(pbl_key.encode(), (recv_ip, PORT))
 
                 for peer in peers:
-                    print(peer)
                     p_ip, p_key = peer.split('#')
                     s.sendto(get_peers_string().encode(), (p_ip, PORT))
 
             else:
-                tmp = data.split(' ')
+                tmp = data.split('&&')
 
                 if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])+\-", tmp[0]):
-                    peers = data.split(' ')
+                    peers = data.split('&&')
 
-                    print(colored('\rpeers list has been updated!', 'white', 'on_green'))
-                    print(colored('New peers list:', 'green'))
-
-                    for peer in peers:
-                        p_ip, p_key = peer.split('#')
-                        p_key = RSA.importKey(p_key)
-
-                        print(colored('Ip: {}; Public Key: {}'.format(p_ip, p_key), 'green'))
+                    print_peers(1)
 
                     if send_ip == '0.0.0.0':
                         print('\rSend to: ', end='')
@@ -228,10 +224,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             elif msg == '/exit':
                 exit_command()
             elif msg == '/peers':
-                print(colored('peers list:', 'white', 'on_cyan'))
-
-                for peer in peers:
-                    print(peer)
+                print_peers(2)
             else:
                 sign = get_signature(msg, prv_key)
                 ms = msg + '###' + sign
