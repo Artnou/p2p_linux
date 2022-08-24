@@ -14,6 +14,11 @@ import os.path
 
 PORT = 5555
 
+# Relevant links: 
+# https://gist.github.com/aellerton/2988ff93c7d84f3dbf5b9b5a09f38ceb 
+# https://www.pythontutorial.net/python-basics/python-check-if-file-exists/ 
+# https://www.w3schools.com/python/ref_func_open.asp
+
 def check_keys_existence():
     return os.path.exists('PrivateKey.txt') and not os.path.exists('PublicKey.txt')
 
@@ -73,6 +78,22 @@ s = IP + '-' + pbl_key
 
 peers = []
 peers.append(s)
+
+def print_peers(n):
+    if n == 1:
+        print(colored('\rpeers list has been updated!', 'white', 'on_green'))
+        print(colored('New peers list:', 'green'))
+
+        for peer in peers:
+            p_ip, p_key = peer.split('-')
+            print(colored('Ip: {}; Public Key: {}'.format(p_ip, p_key), 'green'))
+    elif n == 2:
+        print(colored('peers list:', 'white', 'on_cyan'))
+
+        for peer in peers:
+            p_ip, p_key: peer.split('-')
+            print(colored('Ip: {}, Public Key: {}'.format(p_ip, p_key), 'cyan'))
+
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
@@ -137,6 +158,24 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     else:
                         print('\rYou --> {}: '.format(send_ip), end='')
                 else:
+                    message, signature = data.split('---')
+                    v = False
+
+                    for peer in peers:
+                        p_ip, p_key = peer.split('-')
+
+                        if verify_message(message, signature, pbl_key):
+                            print(colored('Message signature corresponds to ip {}'.format(p_ip), 'yellow'))
+                            v = True
+
+                            if p_ip != recv_ip:
+                                print(colored('Warning: The ip address of the sender differs to the ip address registered to its public key', 'red'))
+
+                            break
+                    
+                    if not v:
+                        print(colored("Warning: Signature can't be verified with registered public keys", 'red'))
+
                     if send_ip == '0.0.0.0':
                         print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
                     else:
@@ -146,7 +185,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     listener.start()
 
     def exit_command():
-        peers.remove(IP)
+        peers.remove(IP + '-' + pbl_key)
 
         for peer in peers:
             s.sendto(get_peers_string().encode(), (peer, PORT))
@@ -181,4 +220,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 for peer in peers:
                     print(peer)
             else:
-                s.sendto(msg.encode(), (send_ip, PORT))
+                sign = get_signature(msg, prv_key)
+                ms = msg + '---' + sign
+
+                s.sendto(ms.encode(), (send_ip, PORT))
