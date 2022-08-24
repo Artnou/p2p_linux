@@ -83,6 +83,8 @@ s = IP + '#' + pbl_key
 peers = []
 peers.append(s)
 
+ip_list = []
+
 def print_peers(n):
     if n == 1:
         print(colored('\rpeers list has been updated!', 'white', 'on_green'))
@@ -134,6 +136,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
     def listen():
         global peers
+        global ip_list
 
         while True:
             data, addr = s.recvfrom(4096)
@@ -144,6 +147,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             for peer in peers:
                 p_ip, p_key = peer.split('#')
                 ip_list.append(p_ip)
+
+            print(ip_list)
 
             if recv_ip not in ip_list:
                 peers.append(recv_ip + '#' + data)
@@ -204,11 +209,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         sys.exit()
 
     while True:
-        ip_list = []
-        for peer in peers:
-            p_ip, p_key = peer.split('#')
-            ip_list.append(p_ip)
-
         while send_ip not in ip_list or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
             send_ip = input('Send to: ')
 
@@ -221,6 +221,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     print(peer)
             elif send_ip not in ip_list or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
+                print(send_ip)
 
         while True:
             msg = input('You --> {}: '.format(send_ip))
@@ -234,6 +235,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 print_peers(2)
             else:
                 sign = get_signature(msg, prv_key)
-                ms = msg + '###' + sign
+                msg = msg + '###'
+                ms = msg.encode() + sign
 
-                s.sendto(ms.encode(), (send_ip, PORT))
+                s.sendto(ms, (send_ip, PORT))
