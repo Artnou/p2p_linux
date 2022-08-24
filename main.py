@@ -174,7 +174,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                         p_ip, p_key = peer.split('#')
                         p_key = RSA.importKey(p_key)
 
-                        if verify_message(message, signature, pbl_key):
+                        if verify_message(message, signature, p_key):
                             print(colored('Message signature corresponds to ip {}'.format(p_ip), 'yellow'))
                             v = True
 
@@ -198,12 +198,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         peers.remove(IP + '#' + pbl_key)
 
         for peer in peers:
-            s.sendto(get_peers_string().encode(), (peer, PORT))
+            p_ip, p_key = peer.split('#')
+            s.sendto(get_peers_string().encode(), (p_ip, PORT))
 
         sys.exit()
 
     while True:
-        while send_ip not in peers or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
+        ip_list = []
+        for peer in peers:
+            p_ip, p_key = peer.split('#')
+            ip_list.append(p_ip)
+
+        while send_ip not in ip_list or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
             send_ip = input('Send to: ')
 
             if send_ip == '/exit':
@@ -213,7 +219,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
                 for peer in peers:
                     print(peer)
-            elif send_ip not in peers or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
+            elif send_ip not in ip_list or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
 
         while True:
