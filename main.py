@@ -140,10 +140,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             data = data.decode()
             recv_ip, recv_port = addr
 
-            if recv_ip not in peers:
-                peers.append(recv_ip + '#' + data)
+            ip_list = []
+            for peer in peers:
+                p_ip, p_key = peer.split('#')
+                ip_list.append(p_ip)
 
-                # peers ok
+            if recv_ip not in ip_list:
+                peers.append(recv_ip + '#' + data)
 
                 s.sendto(pbl_key.encode(), (recv_ip, PORT))
 
