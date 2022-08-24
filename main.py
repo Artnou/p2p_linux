@@ -116,10 +116,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     else:
         s.sendto(pbl_key.encode(), (connect_ip, PORT))
         print('Public key sent')
-        # d = s.recv(4096)
-        # d = d.decode()
+        d = s.recv(4096)
+        d = d.decode()
 
-        # peers.append(connect_ip + '#' + d)
+        peers.append(connect_ip + '#' + d)
         
     def get_peers_string():
         peers_str = ''
@@ -143,11 +143,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             if recv_ip not in peers:
                 peers.append(recv_ip + '#' + data)
 
-                print('\n\n')
-                print(peers)
-                print('\n\n')
+                # peers ok
 
                 s.sendto(pbl_key.encode(), (recv_ip, PORT))
+
+                for peer in peers:
+                    print('\nPEER {}'.format(peers.index(peer)))
+                    print(peer)
 
                 for peer in peers:
                     p_ip, p_key = peer.split('#')
@@ -156,7 +158,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             else:
                 tmp = data.split('&&')
 
-                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])+\-", tmp[0]):
+                if re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])", tmp[0]):
                     peers = data.split('&&')
 
                     print_peers(1)
