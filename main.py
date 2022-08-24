@@ -26,7 +26,7 @@ def check_peers_keys_existence():
     return os.path.exists('PeersKeys.txt')
 
 def generate_keys():
-    pvk = RSA.generate(1024, Random.new().read())
+    pvk = RSA.generate(1024, Random.new().read)
     pbk = pvk.publickey()
 
     exp_pvk = pvk.exportKey('PEM')
@@ -46,12 +46,16 @@ def get_personnal_keys():
     return pvk, pbk
 
 def get_signature(message, pvk):
+    pvk = RSA.importKey(pvk)
+
     digest = SHA256.new()
     digest.update(message.encode())
 
     return PKCS1_v1_5.new(pvk).sign(digest)
 
 def verify_message(message, signature, pbk):
+    pbk = RSA.importKey(pbk)
+
     digest = SHA256.new()
     digest.update(message.encode())
 
@@ -86,13 +90,13 @@ def print_peers(n):
 
         for peer in peers:
             p_ip, p_key = peer.split('-')
-            print(colored('Ip: {}; Public Key: {}'.format(p_ip, p_key), 'green'))
+            print(colored('Ip: {}\n{}'.format(p_ip, p_key), 'green'))
     elif n == 2:
         print(colored('peers list:', 'white', 'on_cyan'))
 
         for peer in peers:
-            p_ip, p_key: peer.split('-')
-            print(colored('Ip: {}, Public Key: {}'.format(p_ip, p_key), 'cyan'))
+            p_ip, p_key = peer.split('-')
+            print(colored('Ip: {}\n{}'.format(p_ip, p_key), 'cyan'))
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -129,12 +133,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         global peers
 
         while True:
-            data, addr = s.recvfrom(1024)
+            data, addr = s.recvfrom(4096)
             data = data.decode()
             recv_ip, recv_port = addr
 
             if recv_ip not in peers:
-                peers.append(recv_ip + '-' + data)
+                peers.append(recv_ip + '#' + data)
 
                 for peer in peers:
                     p_ip, p_key = peer.split('-')
@@ -150,7 +154,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     print(colored('New peers list:', 'green'))
 
                     for peer in peers:
-                        p_ip, p_key = peer.split('-')
+                        p_ip, p_key = peer.split('#')
+                        p_key = RSA.importKey(p_key)
+
                         print(colored('Ip: {}; Public Key: {}'.format(p_ip, p_key), 'green'))
 
                     if send_ip == '0.0.0.0':
@@ -158,11 +164,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     else:
                         print('\rYou --> {}: '.format(send_ip), end='')
                 else:
-                    message, signature = data.split('---')
+                    message, signature = data.split('###')
                     v = False
 
                     for peer in peers:
-                        p_ip, p_key = peer.split('-')
+                        p_ip, p_key = peer.split('#')
+                        p_key = RSA.importKey(p_key)
 
                         if verify_message(message, signature, pbl_key):
                             print(colored('Message signature corresponds to ip {}'.format(p_ip), 'yellow'))
@@ -185,7 +192,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     listener.start()
 
     def exit_command():
-        peers.remove(IP + '-' + pbl_key)
+        peers.remove(IP + '#' + pbl_key)
 
         for peer in peers:
             s.sendto(get_peers_string().encode(), (peer, PORT))
@@ -221,6 +228,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     print(peer)
             else:
                 sign = get_signature(msg, prv_key)
-                ms = msg + '---' + sign
+                ms = msg + '###' + sign
 
                 s.sendto(ms.encode(), (send_ip, PORT))
