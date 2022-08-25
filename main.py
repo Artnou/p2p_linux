@@ -1,3 +1,4 @@
+from cmath import pi
 import socket
 import sys
 import threading
@@ -18,6 +19,7 @@ PORT = 5555
 # https://gist.github.com/aellerton/2988ff93c7d84f3dbf5b9b5a09f38ceb 
 # https://www.pythontutorial.net/python-basics/python-check-if-file-exists/ 
 # https://www.w3schools.com/python/ref_func_open.asp
+# https://github.com/pycrypto/pycrypto/issues/233
 
 def check_keys_existence():
     return os.path.exists('PrivateKey.txt') and not os.path.exists('PublicKey.txt')
@@ -100,6 +102,15 @@ def print_peers(n):
             p_ip, p_key = peer.split('#')
             print(colored('Ip: {}\n{}\n'.format(p_ip, p_key), 'cyan'))
 
+def get_ip_list():
+    ip_list = []
+
+    for peer in peers:
+        p_ip, p_key = peer.split('#')
+        ip_list.append(p_ip)
+
+    return ip_list
+
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
@@ -143,14 +154,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             data = data.decode()
             recv_ip, recv_port = addr
 
-            ip_list = []
-            for peer in peers:
-                p_ip, p_key = peer.split('#')
-                ip_list.append(p_ip)
+            print(get_ip_list())
 
-            print(ip_list)
-
-            if recv_ip not in ip_list:
+            if recv_ip not in get_ip_list():
                 peers.append(recv_ip + '#' + data)
 
                 s.sendto(pbl_key.encode(), (recv_ip, PORT))
@@ -172,8 +178,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     else:
                         print('\rYou --> {}: '.format(send_ip), end='')
                 else:
-                    message, signature = data.split('###')
+                    message = data
                     v = False
+
+                    s.sendto('0'.encode(), (recv_ip, PORT))
+
+                    signature = s.recv(1024)
 
                     for peer in peers:
                         p_ip, p_key = peer.split('#')
@@ -209,7 +219,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         sys.exit()
 
     while True:
-        while send_ip not in ip_list or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
+        while send_ip not in get_ip_list() or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
             send_ip = input('Send to: ')
 
             if send_ip == '/exit':
@@ -219,7 +229,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
                 for peer in peers:
                     print(peer)
-            elif send_ip not in ip_list or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
+            elif send_ip not in get_ip_list() or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
                 print(send_ip)
 
@@ -235,7 +245,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 print_peers(2)
             else:
                 sign = get_signature(msg, prv_key)
-                msg = msg + '###'
-                ms = msg.encode() + sign
 
-                s.sendto(ms, (send_ip, PORT))
+                s.sendto(msg.encode(), (send_ip, PORT))
+
+                a = s.recv(1024)
+
+                s.sendto(sign, (send_ip, PORT))
