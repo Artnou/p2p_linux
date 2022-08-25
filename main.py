@@ -179,9 +179,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     message, signature = data.split('###')
                     v = False
 
-                    signature = b64decode(signature)
-
                     print('Signature received: {}'.format(signature))
+
+                    signature = b64decode(signature.encode())
 
                     for peer in peers:
                         p_ip, p_key = peer.split('#')
@@ -243,7 +243,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             else:
                 sign = b64encode(get_signature(msg, prv_key))
 
-                print('\nsignature: {}\n'.format(sign))
+                print('\nsignature: {}\n'.format(sign.decode()))
 
                 ms = msg + '###' + sign.decode()
 
