@@ -176,9 +176,13 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     message = data
                     v = False
 
+                    print('Sending response, waiting for signature')
+
                     s.sendto('0'.encode(), (recv_ip, PORT))
 
                     signature = s.recv(1024)
+
+                    print('Signature received: {}'.format(signature.decode()))
 
                     for peer in peers:
                         p_ip, p_key = peer.split('#')
@@ -240,8 +244,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             else:
                 sign = get_signature(msg, prv_key)
 
+                print('signature: {}'.format(sign.decode()))
+
                 s.sendto(msg.encode(), (send_ip, PORT))
+
+                print('Message sent, waiting for reply')
 
                 a = s.recv(1024)
 
+                print('Reply received, sending signature')
+
                 s.sendto(sign, (send_ip, PORT))
+
+                print('Signature sent')
