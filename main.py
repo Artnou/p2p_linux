@@ -179,8 +179,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     message, signature = data.split('###')
                     v = False
 
-                    print('Signature received: {}'.format(signature))
-
                     signature = b64decode(signature.encode())
 
                     for peer in peers:
@@ -200,9 +198,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                         print(colored("\rWarning: Signature can't be verified with registered public keys", 'red'))
 
                     if send_ip == '0.0.0.0':
-                        print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
+                        print('\r{} --> You: {}\nSend to: '.format(recv_ip, message), end='')
                     else:
-                        print('\r{} --> You: {}\nYou --> {}: '.format(recv_ip, data, send_ip), end='')
+                        print('\r{} --> You: {}\nYou --> {}: '.format(recv_ip, message, send_ip), end='')
 
     listener = threading.Thread(target=listen, daemon=True)
     listener.start()
@@ -242,8 +240,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 print_peers(2)
             else:
                 sign = b64encode(get_signature(msg, prv_key))
-
-                print('\nsignature: {}\n'.format(sign.decode()))
 
                 ms = msg + '###' + sign.decode()
 
