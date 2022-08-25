@@ -121,6 +121,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     while not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip) and not connect_ip == 'self':
         connect_ip = input('Connect to: ')
 
+        connect_ip = connect_ip.strip()
+
         if not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", connect_ip) and not connect_ip == 'self':
             print(colored('error: invalid ip address', 'white', 'on_red'))
 
@@ -218,13 +220,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         while send_ip not in get_ip_list() or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
             send_ip = input('Send to: ')
 
+            send_ip = send_ip.strip()
+
             if send_ip == '/exit':
                 exit_command()
             elif send_ip == '/peers':
-                print(colored('peers list:', 'white', 'on_cyan'))
-
-                for peer in peers:
-                    print(peer)
+                print_peers(2)
             elif send_ip not in get_ip_list() or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
 
