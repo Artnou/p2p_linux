@@ -10,6 +10,9 @@ from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
 
+from base64 import b64encode
+from base64 import b64decode
+
 import os.path
 
 PORT = 5555
@@ -173,16 +176,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     else:
                         print('\rYou --> {}: '.format(send_ip), end='')
                 else:
-                    message = data
+                    message, signature = data.split('###')
                     v = False
 
-                    print('Sending response, waiting for signature')
+                    signature = b64decode(signature)
 
-                    s.sendto('0'.encode(), (recv_ip, PORT))
-
-                    signature = s.recv(1024)
-
-                    print('Signature received: {}'.format(signature.decode()))
+                    print('Signature received: {}'.format(signature))
 
                     for peer in peers:
                         p_ip, p_key = peer.split('#')
@@ -242,18 +241,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             elif msg == '/peers':
                 print_peers(2)
             else:
-                sign = get_signature(msg, prv_key)
+                sign = b64encode(get_signature(msg, prv_key))
 
-                print('signature: {}'.format(sign.decode()))
+                print('\nsignature: {}\n'.format(sign))
 
-                s.sendto(msg.encode(), (send_ip, PORT))
+                ms = msg + '###' + sign.decode()
 
-                print('Message sent, waiting for reply')
-
-                a = s.recv(1024)
-
-                print('Reply received, sending signature')
-
-                s.sendto(sign, (send_ip, PORT))
-
-                print('Signature sent')
+                s.sendto(ms.encode(), (send_ip, PORT))
