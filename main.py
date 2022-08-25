@@ -55,8 +55,6 @@ def get_signature(message, pvk):
     return PKCS1_v1_5.new(pvk).sign(digest)
 
 def verify_message(message, signature, pbk):
-    pbk = RSA.importKey(pbk)
-
     digest = SHA256.new()
     digest.update(message.encode())
 
@@ -153,8 +151,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             data = data.decode()
             recv_ip, recv_port = addr
 
-            print(get_ip_list())
-
             if recv_ip not in get_ip_list():
                 peers.append(recv_ip + '#' + data)
 
@@ -189,16 +185,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                         p_key = RSA.importKey(p_key)
 
                         if verify_message(message, signature, p_key):
-                            print(colored('Message signature corresponds to ip {}'.format(p_ip), 'yellow'))
+                            print(colored('\rMessage signature corresponds to ip {}'.format(p_ip), 'yellow'))
                             v = True
 
                             if p_ip != recv_ip:
-                                print(colored('Warning: The ip address of the sender differs to the ip address registered to its public key', 'red'))
+                                print(colored('\rWarning: The ip address of the sender differs to the ip address registered to its public key', 'red'))
 
                             break
                     
                     if not v:
-                        print(colored("Warning: Signature can't be verified with registered public keys", 'red'))
+                        print(colored("\rWarning: Signature can't be verified with registered public keys", 'red'))
 
                     if send_ip == '0.0.0.0':
                         print('\r{} --> You: {}\nSend to: '.format(recv_ip, data), end='')
@@ -230,7 +226,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     print(peer)
             elif send_ip not in get_ip_list() or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
-                print(send_ip)
 
         while True:
             msg = input('You --> {}: '.format(send_ip))
