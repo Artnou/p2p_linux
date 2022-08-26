@@ -65,6 +65,7 @@ def verify_message(message, signature, pbk):
     return PKCS1_v1_5.new(pbk).verify(digest, signature)
 
 def encrypt_message(message, pbk):
+    message = message.encode()
     pbk = RSA.importKey(pbk)
     cipher = PKCS1_OAEP.new(pbk)
 
@@ -81,6 +82,7 @@ def encrypt_message(message, pbk):
     return b"".join(result_Digest).decode()
     
 def decrypt_message(message, pvk):
+    message = message.encode()
     pvk = RSA.importKey(pvk)
     cipher = PKCS1_OAEP.new(pvk)
 
@@ -267,6 +269,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 print_peers(2)
             elif send_ip not in get_ip_list() or not re.match(r"192+\.+168+\.+5+\.+\b([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])$", send_ip):
                 print(colored('error: ip adress invalid or not in peers', 'white', 'on_red'))
+                send_ip = '0.0.0.0'
 
         while True:
             msg = input('You --> {}: '.format(send_ip))
