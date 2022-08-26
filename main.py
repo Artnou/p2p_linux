@@ -65,7 +65,6 @@ def verify_message(message, signature, pbk):
     return PKCS1_v1_5.new(pbk).verify(digest, signature)
 
 def encrypt_message(message, pbk):
-    message = message.encode()
     pbk = RSA.importKey(pbk)
     cipher = PKCS1_OAEP.new(pbk)
 
@@ -79,10 +78,9 @@ def encrypt_message(message, pbk):
     for index in range(0, len(message), length):
         result_Digest.append(cipher.encrypt(message[index : index + length]))
 
-    return b"".join(result_Digest).decode()
+    return b"".join(result_Digest)
     
 def decrypt_message(message, pvk):
-    message = message.encode()
     pvk = RSA.importKey(pvk)
     cipher = PKCS1_OAEP.new(pvk)
 
@@ -93,7 +91,7 @@ def decrypt_message(message, pvk):
         decrypted_block = cipher.decrypt(message[index : index + length])
         resultant_Text.append(decrypted_block)
 
-    return b"".join(resultant_Text).decode()
+    return b"".join(resultant_Text)
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     try:
@@ -218,6 +216,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
 
                     signature = b64decode(signature.encode())
 
+                    message = b64decode(message.encode())
+                    message = decrypt_message(message, prv_key).decode()
+
                     for peer in peers:
                         p_ip, p_key = peer.split('#')
                         p_key = RSA.importKey(p_key)
@@ -233,12 +234,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     
                     if not v:
                         print(colored("\rWarning: Signature can't be verified with registered public keys", 'red'))
-
-                    print('\nCrypted message: {}'.format(message))
-
-                    message = decrypt_message(message, prv_key)
-
-                    print('Decrypted message: {}\n'.format(message))
 
                     if send_ip == '0.0.0.0':
                         print('\r{} --> You: {}\nSend to: '.format(recv_ip, message), end='')
@@ -284,9 +279,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             else:
                 sign = b64encode(get_signature(msg, prv_key))
 
-                e_msg = encrypt_message(msg, get_key_by_ip(send_ip))
-
-                print('\nMessage: {}\nEncrypted: {}\n'.format(msg, e_msg))
+                e_msg = b64encode(encrypt_message(msg.encode(), get_key_by_ip(send_ip))).decode()
 
                 ms = e_msg + '###' + sign.decode()
 
