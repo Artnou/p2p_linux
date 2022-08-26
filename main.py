@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 import re
+import os.path
 
 from termcolor import colored
 
@@ -9,11 +10,11 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Signature import PKCS1_v1_5
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Util import number
 
 from base64 import b64encode
 from base64 import b64decode
-
-import os.path
 
 PORT = 5555
 
@@ -63,6 +64,34 @@ def verify_message(message, signature, pbk):
 
     return PKCS1_v1_5.new(pbk).verify(digest, signature)
 
+def encrypt_message(message, pbk):
+    pbk = RSA.importKey(pbk)
+    cipher = PKCS1_OAEP.new(pbk)
+
+    SIZE_in_Bits = number.size(cipher._key.n)
+    block = number.ceil_div(SIZE_in_Bits, 8)
+
+    Hash_Digest_Size = cipher._hashObj.digest_size
+    length = block - 2 * Hash_Digest_Size
+    result_Digest = []
+
+    for index in range(0, len(message), length):
+        result_Digest.append(cipher.encrypt(message[index : index + length]))
+
+    return b"".join(result_Digest).decode()
+    
+def decrypt_message(message, pvk):
+    pvk = RSA.importKey(pvk)
+    cipher = PKCS1_OAEP.new(pvk)
+
+    length = pvk.size_in_bytes() # if doesn't work, change to 256
+    resultant_Text = []
+
+    for index in range(0, len(message), length):
+        decrypted_block = cipher.decrypt(message[index : index + length])
+        resultant_Text.append(decrypted_block)
+
+    return b"".join(resultant_Text).decode()
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     try:
@@ -84,8 +113,6 @@ s = IP + '#' + pbl_key
 
 peers = []
 peers.append(s)
-
-ip_list = []
 
 def print_peers(n):
     if n == 1:
@@ -111,6 +138,12 @@ def get_ip_list():
 
     return ip_list
 
+def get_key_by_ip(ip):
+    for peer in peers:
+        p_ip, p_key = peer.split('#')
+
+        if p_ip == ip:
+            return p_key
 
 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     s.bind(('0.0.0.0', PORT))
@@ -199,6 +232,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                     if not v:
                         print(colored("\rWarning: Signature can't be verified with registered public keys", 'red'))
 
+                    print('\nCrypted message: {}'.format(message))
+
+                    message = decrypt_message(message, prv_key)
+
+                    print('Decrypted message: {}\n'.format(message))
+
                     if send_ip == '0.0.0.0':
                         print('\r{} --> You: {}\nSend to: '.format(recv_ip, message), end='')
                     else:
@@ -242,6 +281,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             else:
                 sign = b64encode(get_signature(msg, prv_key))
 
-                ms = msg + '###' + sign.decode()
+                e_msg = encrypt_message(msg, get_key_by_ip(send_ip))
+
+                print('\nMessage: {}\nEncrypted: {}\n'.format(msg, e_msg))
+
+                ms = e_msg + '###' + sign.decode()
 
                 s.sendto(ms.encode(), (send_ip, PORT))
